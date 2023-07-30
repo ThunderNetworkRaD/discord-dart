@@ -1,7 +1,12 @@
 import "package:events_emitter/events_emitter.dart";
+import "package:http/http.dart";
+import "package:tn_discord/src/error_handler.dart";
+import "package:tn_discord/src/message.dart";
 import "types.dart";
 import "util.dart";
-import 'package:http/http.dart' as http;
+
+final version = "10";
+final apiURL = "https://discord.com/api/v$version";
 
 class Client extends EventEmitter {
   Client({List<GatewayIntentBits> intents = const []});
@@ -22,11 +27,39 @@ class WebhookClient {
     }
   }
 
-  void send(String content) async {
-    final url = Uri.parse("https://discord.com/api/webhooks/$id/$token");
+  void sendText(String content) async {
+    Map<String, String> body = {"content": content};
+    Response res = await sendWH(body, token, id);
 
-    final body = {"content": content};
-    
-    await http.post(url, body: body);
+    handleCode(res.statusCode, res);
+  }
+
+  void send({String content = "", List<Embed> embeds = const []}) async {
+    Map body = {"content": content, "embeds": embeds};
+
+    Response res = await sendWH(body, token, id);
+
+    handleCode(res.statusCode, res);
+  }
+
+  void editText(String id, String content) async {
+    Map<String, String> body = {"content": content};
+    Response res = await editWH(body, token, this.id, id);
+
+    handleCode(res.statusCode, res);
+  }
+
+  void edit(String id, {String content = "", List<Embed> embeds = const []}) async {
+    Map body = {"content": content, "embeds": embeds};
+    Response res = await editWH(body, token, this.id, id);
+
+    handleCode(res.statusCode, res);
+  }
+
+  Future<void> get(String id) async {
+    Response res = await getWH(token, this.id, id);
+
+    handleCode(res.statusCode, res);
+
   }
 }

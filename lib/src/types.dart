@@ -21,3 +21,6 @@ class GatewayIntentBits {
   static const AutoModerationConfiguration = 1048576;
   static const AutoModerationExecution = 2097152;
 }
+
+typedef Embed = Map<String, String>;
+typedef Message = Map<String, String>;
