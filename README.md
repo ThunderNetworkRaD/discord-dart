@@ -1,5 +1,6 @@
 # discord.dart
-![https://img.shields.io/pub/v/tn_discord?color=red&logo=dart](https://github.com/ThunderNetworkRaD/discord.dart)
+[![Pub](https://img.shields.io/pub/v/tn_discord?color=red&logo=dart)](https://github.com/ThunderNetworkRaD/discord.dart)
+
 This package is work in progress.
 
 ## Webhooks
