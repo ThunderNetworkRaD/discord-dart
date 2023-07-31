@@ -1,3 +1,5 @@
+import 'package:tn_discord/src/types.dart';
+
 class Utils {
   static Map<String, String> parseWebhookURL(String url) {
     final RegExp regex = RegExp(
@@ -17,5 +19,14 @@ class Utils {
       "id": id,
       "token": token,
     };
+  }
+
+  Map<String, dynamic> createMessage({String? text, List<Embed>? embeds}) {
+    Map<String, dynamic> message = {};
+
+    if (text != null && text != "") message["content"] = text;
+    if (embeds != null && embeds.isNotEmpty) message["embeds"] = embeds;
+
+    return message;
   }
 }

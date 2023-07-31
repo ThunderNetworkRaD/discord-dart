@@ -1,6 +1,7 @@
 import 'package:http/http.dart';
 
-void handleCode(int code, Response fullResponse) {
+void handleCode(Response res) async {
+  int code = res.statusCode;
   switch (code) {
     default:
       break;

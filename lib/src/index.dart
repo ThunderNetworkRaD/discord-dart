@@ -1,3 +1,5 @@
+import "dart:convert";
+
 import "package:events_emitter/events_emitter.dart";
 import "package:http/http.dart";
 import "package:tn_discord/src/error_handler.dart";
@@ -27,39 +29,50 @@ class WebhookClient {
     }
   }
 
-  void sendText(String content) async {
+  Future<Map<String, dynamic>> sendText(String content) async {
     Map<String, String> body = {"content": content};
     Response res = await sendWH(body, token, id);
 
-    handleCode(res.statusCode, res);
+    handleCode(res);
+    return json.decode(res.body);
   }
 
-  void send({String content = "", List<Embed> embeds = const []}) async {
-    Map body = {"content": content, "embeds": embeds};
+  Future<Map<String, dynamic>> send({String? content, List<Embed>? embeds}) async {
+    Map<String, dynamic> body = Utils().createMessage(text: content, embeds: embeds);
 
     Response res = await sendWH(body, token, id);
 
-    handleCode(res.statusCode, res);
+    handleCode(res);
+    return json.decode(res.body);
   }
 
-  void editText(String id, String content) async {
+  Future<Map<String, dynamic>> editText(String id, String content) async {
     Map<String, String> body = {"content": content};
     Response res = await editWH(body, token, this.id, id);
 
-    handleCode(res.statusCode, res);
+    handleCode(res);
+    return json.decode(res.body);
   }
 
-  void edit(String id, {String content = "", List<Embed> embeds = const []}) async {
+  Future<Map<String, dynamic>> edit(String id, {String content = "", List<Embed> embeds = const []}) async {
     Map body = {"content": content, "embeds": embeds};
     Response res = await editWH(body, token, this.id, id);
 
-    handleCode(res.statusCode, res);
+    handleCode(res);
+    return json.decode(res.body);
   }
 
-  Future<void> get(String id) async {
+  Future<Map<String, dynamic>> get(String id) async {
     Response res = await getWH(token, this.id, id);
+    handleCode(res);
 
-    handleCode(res.statusCode, res);
+    return json.decode(res.body);
+  }
 
+  Future<Map<String, dynamic>> delete(String id) async {
+    Response res = await deleteWH(token, this.id, id);
+    handleCode(res);
+
+    return json.decode(res.body);
   }
 }
