@@ -1,4 +1,4 @@
-import 'package:tn_discord/src/types.dart';
+import 'types.dart';
 
 class Utils {
   static Map<String, String> parseWebhookURL(String url) {

@@ -1,18 +1,10 @@
 import "dart:convert";
 
-import "package:events_emitter/events_emitter.dart";
 import "package:http/http.dart";
-import "package:tn_discord/src/error_handler.dart";
-import "package:tn_discord/src/message.dart";
+import "error_handler.dart";
+import "message.dart";
 import "types.dart";
 import "util.dart";
-
-final version = "10";
-final apiURL = "https://discord.com/api/v$version";
-
-class Client extends EventEmitter {
-  Client({List<GatewayIntentBits> intents = const []});
-}
 
 class WebhookClient {
   String token = "";
@@ -37,8 +29,10 @@ class WebhookClient {
     return json.decode(res.body);
   }
 
-  Future<Map<String, dynamic>> send({String? content, List<Embed>? embeds}) async {
-    Map<String, dynamic> body = Utils().createMessage(text: content, embeds: embeds);
+  Future<Map<String, dynamic>> send(
+      {String? content, List<Embed>? embeds}) async {
+    Map<String, dynamic> body =
+        Utils().createMessage(text: content, embeds: embeds);
 
     Response res = await sendWH(body, token, id);
 
@@ -54,7 +48,8 @@ class WebhookClient {
     return json.decode(res.body);
   }
 
-  Future<Map<String, dynamic>> edit(String id, {String content = "", List<Embed> embeds = const []}) async {
+  Future<Map<String, dynamic>> edit(String id,
+      {String content = "", List<Embed> embeds = const []}) async {
     Map body = {"content": content, "embeds": embeds};
     Response res = await editWH(body, token, this.id, id);
 
