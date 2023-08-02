@@ -2,7 +2,7 @@ import "dart:convert";
 
 import "package:http/http.dart";
 import "error_handler.dart";
-import "message.dart";
+import 'requests.dart';
 import "types.dart";
 import "util.dart";
 
