@@ -29,8 +29,7 @@ class WebhookClient {
     return json.decode(res.body);
   }
 
-  Future<Map<String, dynamic>> send(
-      {String? content, List<Embed>? embeds}) async {
+  Future<Map<String, dynamic>> send({String? content, List<Embed>? embeds}) async {
     Map<String, dynamic> body =
         Utils().createMessage(text: content, embeds: embeds);
 
@@ -48,8 +47,7 @@ class WebhookClient {
     return json.decode(res.body);
   }
 
-  Future<Map<String, dynamic>> edit(String id,
-      {String content = "", List<Embed> embeds = const []}) async {
+  Future<Map<String, dynamic>> edit(String id, {String content = "", List<Embed> embeds = const []}) async {
     Map body = {"content": content, "embeds": embeds};
     Response res = await editWH(body, token, this.id, id);
 

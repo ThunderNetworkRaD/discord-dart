@@ -1,4 +1,10 @@
-// ignore_for_file: non_constant_identifier_names, constant_identifier_names
+// ignore_for_file: constant_identifier_names
+
+import "dart:convert";
+
+import "package:http/http.dart" as http;
+
+import "main.dart";
 
 class GatewayIntentBits {
   static const Guilds = 1;
@@ -20,6 +26,165 @@ class GatewayIntentBits {
   static const GuildScheduledEvents = 65536;
   static const AutoModerationConfiguration = 1048576;
   static const AutoModerationExecution = 2097152;
+}
+
+class Collection {
+  final Map<String, dynamic> _variables = {};
+  Collection();
+
+  dynamic set(String key, dynamic value) {
+    _variables[key] = value;
+    return value;
+  }
+
+  dynamic get(String key) {
+    return _variables[key];
+  }
+
+  void remove(String key) {
+    _variables.remove(key);
+  }
+
+  dynamic add(String key, num value) {
+    _variables[key] += value;
+    return value + _variables[key];
+  }
+
+  dynamic subtract(String key, num value) {
+    _variables[key] -= value;
+    return value - _variables[key];
+  }
+}
+
+class Guild {
+  String id = '';
+  String name = '';
+  String owner = '';
+  String description = '';
+
+  Guild(Map data) {
+    id = data["id"];
+    name = data["name"];
+    description = data["description"];
+    owner = data["owner_id"];
+  }
+}
+
+class GuildManager {
+  final Collection cache = Collection();
+
+  GuildManager(List<Guild> guilds) {
+    for (var guild in guilds) {
+      cache.set(guild.id, guild);
+    }
+  }
+
+  Future<Guild> fetch(String id) async {
+    var res = await http.get(Uri.parse("$apiURL/guilds/$id"));
+    if (res.statusCode != 200) {
+      throw Exception("Error ${res.statusCode} receiving the guild");
+    }
+    final guild = Guild(json.decode(res.body));
+    cache.set(guild.id, guild);
+    return guild;
+  }
+}
+
+class Channel {
+  String id = '';
+  String name = '';
+
+  Channel(Map data) {
+    id = data["id"];
+    name = data["name"];
+  }
+}
+
+class ChannelManager {
+  final Collection cache = Collection();
+
+  ChannelManager(List<Channel> channels) {
+    for (var channel in channels) {
+      cache.set(channel.id, channel);
+    }
+  }
+
+  Future<Channel> fetch(String id) async {
+    var res = await http.get(Uri.parse("$apiURL/channels/$id"));
+    if (res.statusCode != 200) {
+      throw Exception("Error ${res.statusCode} receiving the channel");
+    }
+    dynamic channel = Channel(json.decode(res.body));
+    cache.set(channel.id, channel);
+    return channel;
+  }
+}
+
+class Role {
+  //
+}
+
+class RoleManager {
+  //
+}
+
+class Member {
+  User? user;
+  RoleManager? roles;
+  String joinedAt = '';
+  int flags = 0;
+
+
+  Member(Map data) {
+    user = User(data["user"]);
+    joinedAt = data["joined_at"];
+    int flags = 0;
+  }
+}
+
+
+class MemberManager {
+  //
+}
+
+class User {
+  String id = '';
+  bool bot = false;
+  String username = '';
+  String globalName = '';
+  String displayName = '';
+  int discriminator = 0;
+  String avatar = '';
+
+  User(Map data) {
+    id = data["id"];
+    bot = data["bot"];
+    username = data["username"];
+    globalName = data["global_name"];
+    displayName = data["display_name"];
+    discriminator = data["discriminator"];
+    avatar = "https://cdn.discordapp.com/avatars/$id/${data["avatar"]}.webp";
+  }
+}
+
+class UserManager {
+  final Collection cache = Collection();
+
+  UserManager(List<User> users) {
+    for (var user in users) {
+      cache.set(user.id, user);
+    }
+  }
+
+  Future<User> fetch(String id) async {
+    var res = await http.get(Uri.parse("$apiURL/users/$id"));
+    if (res.statusCode != 200) {
+      throw Exception("Error ${res.statusCode} receiving the user");
+    }
+    dynamic user = User(json.decode(res.body));
+    cache.set(user.id, user);
+    return user;
+  }
 }
 
 typedef Embed = Map<String, String>;

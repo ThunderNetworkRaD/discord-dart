@@ -1,29 +1,38 @@
 import "dart:async";
 import "dart:io";
-import "package:tn_discord/src/requests.dart";
+import "package:tn_discord/src/types.dart";
 
-import "types.dart";
+import "requests.dart";
+
 import "dart:convert";
 import "package:events_emitter/events_emitter.dart";
 
 final version = "10";
 final apiURL = "https://discord.com/api/v$version";
 
+int calculateIntents(List<int> intents) {
+  int intentsNumber = 0;
+
+  for (var element in intents) {
+    intentsNumber += element;
+  }
+
+  return intentsNumber;
+}
+
 class Client extends EventEmitter {
   String? token;
-  List<GatewayIntentBits> intents = [];
-  bool logged = false;
+  int intents;
   dynamic ws;
-  String resume_gateway_url = "";
-  String session_id = "";
+  String resumeGatewayURL = "";
+  String sessionID = "";
 
-  Client({List<GatewayIntentBits> intents = const []});
+  Client({this.intents = 0});
 
   login(String token) async {
     final websocket = await requestWebSocketURL();
 
     this.token = token;
-    logged = true;
 
     ws = await WebSocket.connect(websocket);
 
@@ -31,30 +40,30 @@ class Client extends EventEmitter {
       "op": 2,
       'd': {
         "token": token,
-        "intents": 32767,
+        "intents": intents,
         "properties": {
           "os": "linux",
-          "browser": "chrome",
-          "device": "chrome",
+          "browser": "tn_discord",
+          "device": "tn_discord",
         },
       }
     };
+
     ws.add(json.encode(payload));
 
-    reconnect() {
+    reconnect() async {
       payload = {
         "op": 6,
-        "d": {"token": token, "session_id": session_id, "seq": 1337}
+        "d": {"token": token, "session_id": sessionID, "seq": 1337}
       };
 
-      ws = WebSocket.connect(resume_gateway_url);
+      ws = await WebSocket.connect(resumeGatewayURL);
       ws.add(json.encode(payload));
     }
 
     sendHeartBeat() {
       payload = {"op": 1, "d": null};
       ws.add(json.encode(payload));
-      print("Sent Heartbeat");
     }
 
     heartbeatsender(int ms) {
@@ -64,10 +73,12 @@ class Client extends EventEmitter {
       });
     }
 
+    Sender sender = Sender(token);
+    var i = await sender.getServer();
+    GuildManager(i);
+
     ws.listen((event) {
       event = json.decode(event);
-
-      print(event);
 
       switch (event["op"]) {
         case 1:
@@ -78,6 +89,23 @@ class Client extends EventEmitter {
           break;
         case 7:
         case 9:
+          reconnect();
+          break;
+      }
+
+      var eventName = event["t"];
+
+      switch (eventName) {
+        case "READY":
+          resumeGatewayURL = event["d"]["resume_gateway_url"];
+          sessionID = event["d"]["session_id"];
+          emit("READY", event["d"]);
+          break;
+        case "GUILD_CREATE":
+          break;
+      }
+    }, onDone: () {
+      switch (ws.closeCode) {
         case 4000:
         case 4001:
         case 4002:
@@ -89,7 +117,7 @@ class Client extends EventEmitter {
           reconnect();
           break;
         case 4004:
-          throw Exception("[4014] Disallowed Intents");
+          throw Exception("[4004] Disallowed Intents");
         case 4010:
           throw Exception("[4010] Invalid Shard");
         case 4011:
@@ -100,13 +128,6 @@ class Client extends EventEmitter {
           throw Exception("[4013] Invalid Intents");
         case 4014:
           throw Exception("[4014] Disallowed Intents");
-      }
-
-      var eventName = event["t"];
-
-      switch (eventName) {
-        case "READY":
-          emit("READY", event);
       }
     });
   }
