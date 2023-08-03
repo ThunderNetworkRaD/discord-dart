@@ -26,6 +26,8 @@ class Client extends EventEmitter {
   dynamic ws;
   String resumeGatewayURL = "";
   String sessionID = "";
+  dynamic guilds;
+  dynamic ready;
 
   Client({this.intents = 0});
 
@@ -74,8 +76,17 @@ class Client extends EventEmitter {
     }
 
     Sender sender = Sender(token);
-    var i = await sender.getServer();
-    GuildManager(i);
+    var i = await sender.getServers();
+
+    List<Guild> gg = [];
+
+    for (dynamic g in i) {
+      gg.add(Guild(g));
+    }
+
+    guilds = GuildManager(gg);
+
+    int n = i.length;
 
     ws.listen((event) {
       event = json.decode(event);
@@ -99,9 +110,14 @@ class Client extends EventEmitter {
         case "READY":
           resumeGatewayURL = event["d"]["resume_gateway_url"];
           sessionID = event["d"]["session_id"];
-          emit("READY", event["d"]);
           break;
         case "GUILD_CREATE":
+          guilds.cache.set(event["d"]["id"], Guild(event["d"]));
+          if (n > 1) {
+            n--;
+          } else {
+            emit("READY");
+          }
           break;
       }
     }, onDone: () {

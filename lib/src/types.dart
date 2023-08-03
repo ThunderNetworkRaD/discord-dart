@@ -1,9 +1,6 @@
 // ignore_for_file: constant_identifier_names
-
 import "dart:convert";
-
 import "package:http/http.dart" as http;
-
 import "main.dart";
 
 class GatewayIntentBits {
@@ -38,6 +35,9 @@ class Collection {
   }
 
   dynamic get(String key) {
+    if (_variables[key] == null) {
+      throw Exception("Variable not found for $key");
+    }
     return _variables[key];
   }
 
@@ -54,19 +54,54 @@ class Collection {
     _variables[key] -= value;
     return value - _variables[key];
   }
+
+  Map<String, dynamic> getAll() {
+    return _variables;
+  }
+
+  List<String> keys() {
+    return _variables.keys.toList();
+  }
+
+  List<dynamic> values() {
+    return _variables.values.toList();
+  }
 }
 
 class Guild {
   String id = '';
   String name = '';
-  String owner = '';
-  String description = '';
+  String? owner;
+  String? description;
+  ChannelManager channels = ChannelManager([]);
+  MemberManager members = MemberManager([], '');
+  RoleManager roles = RoleManager([]);
 
   Guild(Map data) {
     id = data["id"];
     name = data["name"];
     description = data["description"];
     owner = data["owner_id"];
+
+    if(data["channels"] != null && data["members"] != null && data["roles"] != null) {
+      List<Channel> cc = [];
+      for (var c in data["channels"]) {
+        cc.add(Channel(c));
+      }
+      channels = ChannelManager(cc);
+
+      List<Member> mm = [];
+      for (var m in data["members"]) {
+        mm.add(Member(m));
+      }
+      members = MemberManager(mm, id);
+
+      List<Role> rr = [];
+      for (var r in data["roles"]) {
+        rr.add(Role(r));
+      }
+      roles = RoleManager(rr);
+    }
   }
 }
 
@@ -120,31 +155,58 @@ class ChannelManager {
   }
 }
 
-class Role {
-  //
-}
-
-class RoleManager {
-  //
-}
-
 class Member {
-  User? user;
-  RoleManager? roles;
-  String joinedAt = '';
-  int flags = 0;
-
+  String id = '';
+  String name = '';
+  User user = User({});
 
   Member(Map data) {
+    id = data["user"]["id"];
+    name = data["user"]["username"];
     user = User(data["user"]);
-    joinedAt = data["joined_at"];
-    int flags = 0;
   }
 }
 
-
 class MemberManager {
-  //
+  final Collection cache = Collection();
+  String id;
+
+  MemberManager(List<Member> members, this.id) {
+    for (var member in members) {
+      cache.set(member.id, member);
+    }
+  }
+
+  fetch(String id) async {
+    dynamic res = await http.get(Uri.parse("$apiURL/guilds/${this.id}/members/$id"));
+    if (res.statusCode != 200) {
+      throw Exception("Error ${res.statusCode} receiving the member");
+    }
+
+    res = json.decode(res.body);
+    cache.set(id, res);
+    return res;
+  }
+}
+
+class Role {
+  String id = '';
+  String name = '';
+
+  Role(Map data) {
+    id = data["id"];
+    name = data["name"];
+  }
+}
+
+class RoleManager {
+  final Collection cache = Collection();
+
+  RoleManager(List<Role> roles) {
+    for (var role in roles) {
+      cache.set(role.id, role);
+    }
+  }
 }
 
 class User {
@@ -157,13 +219,16 @@ class User {
   String avatar = '';
 
   User(Map data) {
+    if (data["id"] == null) {
+      return;
+    }
     id = data["id"];
-    bot = data["bot"];
+    // bot = data["bot"];
     username = data["username"];
-    globalName = data["global_name"];
-    displayName = data["display_name"];
-    discriminator = data["discriminator"];
-    avatar = "https://cdn.discordapp.com/avatars/$id/${data["avatar"]}.webp";
+    // globalName = data["global_name"];
+    // displayName = data["display_name"];
+    // discriminator = data["discriminator"];
+    // avatar = "https://cdn.discordapp.com/avatars/$id/${data["avatar"]}.webp";
   }
 }
 

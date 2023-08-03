@@ -44,11 +44,10 @@ class Sender {
     };
   }
 
-  Future getServer() async {
+  Future getServers() async {
     final url = Uri.parse("$apiURL/users/@me/guilds");
     dynamic res = await http.get(url, headers: headers);
     res = json.decode(res.body);
     return res;
-    
   }
 }
