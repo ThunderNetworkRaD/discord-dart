@@ -88,43 +88,61 @@ class Collection {
 
 /// Represents a guild (aka server) on Discord.
 class Guild {
-  String id = '';
-  String name = '';
-  String? owner;
-  String? description;
-  late ChannelManager channels;
-  late MemberManager members;
-  late RoleManager roles;
   final Sender _sender;
+  ChannelManager? channels;
+  MemberManager? members;
+  RoleManager? roles;
+  String id = '';
+  String? name = '';
+  String? ownerId;
+  String? description;
+  String? joinedAt;
+  bool? large;
+  bool? unavailable;
+  int? memberCount;
 
   Guild(this._sender, Map data) {
     id = data["id"];
-    name = data["name"];
-    description = data["description"];
-    owner = data["owner_id"];
-
-    if(data["channels"] != null && data["members"] != null && data["roles"] != null) {
-      List<Channel> cc = [];
-      for (var c in data["channels"]) {
-        cc.add(Channel(_sender, c));
+    if (data["unavailable"] != null && data["unavailable"] == false) {
+      unavailable = data["unavailable"];
+      name = data["name"];
+      description = data["description"];
+      ownerId = data["owner_id"];
+      if (data["joined_at"] != null) {
+        joinedAt = data["joined_at"];
       }
-      channels = ChannelManager(_sender, cc);
-
-      List<Member> mm = [];
-      for (var m in data["members"]) {
-        mm.add(Member(m));
+      if (data["large"] != null) {
+        large = data["large"];
       }
-      members = MemberManager(mm, id);
-
-      List<Role> rr = [];
-      for (var r in data["roles"]) {
-        rr.add(Role(r));
+      if (data["member_count"] != null) {
+        memberCount = data["member_count"];
       }
-      roles = RoleManager(rr);
+
+      if(data["channels"] != null && data["members"] != null && data["roles"] != null) {
+        List<Channel> cc = [];
+        for (var c in data["channels"]) {
+          cc.add(Channel(_sender, c));
+        }
+        channels = ChannelManager(_sender, cc);
+
+        List<Member> mm = [];
+        for (var m in data["members"]) {
+          mm.add(Member(m));
+        }
+        members = MemberManager(mm, id);
+
+        List<Role> rr = [];
+        for (var r in data["roles"]) {
+          rr.add(Role(r));
+        }
+        roles = RoleManager(rr);
+      } else {
+        channels = ChannelManager(_sender, []);
+        members = MemberManager([], id);
+        roles = RoleManager([]);
+      }
     } else {
-      channels = ChannelManager(_sender, []);
-      members = MemberManager([], id);
-      roles = RoleManager([]);
+      unavailable = data["unavailable"];
     }
   }
 }
@@ -142,6 +160,11 @@ class GuildManager {
   Future<Guild> fetch(String id) async {
     var res = await _sender.fetchGuild(id);
     final guild = Guild(_sender, res);
+    final oldGuild = cache.get(guild.id);
+    guild.joinedAt = oldGuild.joinedAt;
+    guild.large = oldGuild.large;
+    guild.unavailable = oldGuild.unavailable;
+    guild.memberCount = oldGuild.memberCount;
     cache.set(guild.id, guild);
     return guild;
   }
@@ -283,6 +306,7 @@ class Message {
   String? content;
   Message({ this.content });
 
+  /// Returns an object rapresentation of the message
   exportable() {
     return {
       "content": content,

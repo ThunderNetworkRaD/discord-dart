@@ -27,11 +27,10 @@ int calculateIntents(List<int> intents) {
 class Client extends EventEmitter {
   String? token;
   int intents;
-  dynamic ws;
+  late WebSocket ws;
   String resumeGatewayURL = "";
   String sessionID = "";
-  dynamic guilds;
-  dynamic ready;
+  late GuildManager guilds;
 
   /// Create a new Client.
   /// [intents] Intents to enable for this connection, it's a multiple of two.
