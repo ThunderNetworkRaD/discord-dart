@@ -1,15 +1,17 @@
 import "dart:async";
 import "dart:io";
-import "package:tn_discord/src/types.dart";
-
-import "requests.dart";
-
 import "dart:convert";
 import "package:events_emitter/events_emitter.dart";
+
+import "types.dart";
+import "requests.dart";
 
 final version = "10";
 final apiURL = "https://discord.com/api/v$version";
 
+/// This function calculate the intent number required from the gateway.
+/// [intents] is a list of multiples of two. You can use GatewayIntentBits class.
+/// Return a number.
 int calculateIntents(List<int> intents) {
   int intentsNumber = 0;
 
@@ -20,6 +22,8 @@ int calculateIntents(List<int> intents) {
   return intentsNumber;
 }
 
+
+/// The main hub for interacting with the Discord API, and the starting point for any bot.
 class Client extends EventEmitter {
   String? token;
   int intents;
@@ -29,8 +33,13 @@ class Client extends EventEmitter {
   dynamic guilds;
   dynamic ready;
 
+  /// Create a new Client.
+  /// [intents] Intents to enable for this connection, it's a multiple of two.
   Client({this.intents = 0});
 
+  /// Logs the client in, establishing a WebSocket connection to Discord.
+  /// [token] is the token of the account to log in with.
+  /// Get the token from https://discord.dev
   login(String token) async {
     final websocket = await requestWebSocketURL();
 
@@ -44,7 +53,7 @@ class Client extends EventEmitter {
         "token": token,
         "intents": intents,
         "properties": {
-          "os": "linux",
+          "os": Platform.operatingSystem,
           "browser": "tn_discord",
           "device": "tn_discord",
         },
@@ -81,10 +90,10 @@ class Client extends EventEmitter {
     List<Guild> gg = [];
 
     for (dynamic g in i) {
-      gg.add(Guild(g));
+      gg.add(Guild(sender, g));
     }
 
-    guilds = GuildManager(gg);
+    guilds = GuildManager(sender, gg);
 
     int n = i.length;
 
@@ -112,7 +121,7 @@ class Client extends EventEmitter {
           sessionID = event["d"]["session_id"];
           break;
         case "GUILD_CREATE":
-          guilds.cache.set(event["d"]["id"], Guild(event["d"]));
+          guilds.cache.set(event["d"]["id"], Guild(sender, event["d"]));
           if (n > 1) {
             n--;
           } else {

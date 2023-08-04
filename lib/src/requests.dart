@@ -1,4 +1,5 @@
 import 'main.dart';
+import 'types.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -34,19 +35,44 @@ Future<String> requestWebSocketURL() async {
 }
 
 class Sender {
-  String? token;
+  final String? _token;
   Map<String, String> headers = {};
 
-  Sender(token) {
+  Sender(this._token) {
     headers = {
       "Content-Type": "application/json",
-      "Authorization": "Bot $token"
+      "Authorization": "Bot $_token",
     };
   }
 
   Future getServers() async {
     final url = Uri.parse("$apiURL/users/@me/guilds");
     dynamic res = await http.get(url, headers: headers);
+    res = json.decode(res.body);
+    return res;
+  }
+
+  Future send(Message msg, String cid) async {
+    final url = Uri.parse("$apiURL/channels/$cid/messages");
+    dynamic res = await http.post(url, headers: headers, body: json.encode(msg.exportable()));
+    res = json.decode(res.body);
+    return res;
+  }
+
+  Future fetchGuild(String id) async {
+    dynamic res = await http.get(Uri.parse("$apiURL/guilds/$id"), headers: headers);
+    if (res.statusCode != 200) {
+      throw Exception("Error ${res.statusCode} receiving the guild");
+    }
+    res = json.decode(res.body);
+    return res;
+  }
+
+  Future fetchChannel(String id) async {
+    dynamic res = await http.get(Uri.parse("$apiURL/channels/$id"), headers: headers);
+    if (res.statusCode != 200) {
+      throw Exception("Error ${res.statusCode} receiving the channel");
+    }
     res = json.decode(res.body);
     return res;
   }

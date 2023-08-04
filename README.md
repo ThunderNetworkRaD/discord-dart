@@ -17,3 +17,10 @@ main() {
 - id: String
 - token: String
 url overrides id and token
+
+## Credits
+We took inspiration from [discord.js](https://github.com/discordjs/discord.js) and [Grapes-discord.grapes](https://github.com/BlackdestinyXX/Grapes-discord.grapes).
+
+### Packages
+- [http](https://pub.dev/packages/http) by dart.dev (BSD-3-Clause)
+- [events-emitter](https://pub.dev/packages/events_emitter) by drafakiller.com (MIT)

@@ -2,7 +2,9 @@
 import "dart:convert";
 import "package:http/http.dart" as http;
 import "main.dart";
+import "requests.dart";
 
+/// A list of all Gateway Intents Bits.
 class GatewayIntentBits {
   static const Guilds = 1;
   static const GuildMembers = 2;
@@ -25,15 +27,20 @@ class GatewayIntentBits {
   static const AutoModerationExecution = 2097152;
 }
 
+/// A collection of variables. Like NodeJS' Map and discordjs' Collections
+/// This will be moved to a separate package in the future.
 class Collection {
   final Map<String, dynamic> _variables = {};
+  /// Create a new Collection
   Collection();
 
+  /// Adds a new element with key [key] and value [value] to the Map. If an element with the same key already exists, the element will be updated.
   dynamic set(String key, dynamic value) {
     _variables[key] = value;
     return value;
   }
 
+  /// Returns [key] from the Map object. If the value that is associated to the provided key is an object, then you will get a reference to that object and any change made to that object will effectively modify it inside the Map.
   dynamic get(String key) {
     if (_variables[key] == null) {
       throw Exception("Variable not found for $key");
@@ -41,43 +48,56 @@ class Collection {
     return _variables[key];
   }
 
+  /// Removes [key] from the Map object.
   void remove(String key) {
     _variables.remove(key);
   }
 
+  /// Alias of [remove]
+  void delete(String key) {
+    remove(key);
+  }
+
+  /// Sum to the value of [key] to [value].
   dynamic add(String key, num value) {
     _variables[key] += value;
     return value + _variables[key];
   }
 
+  /// Subtract [value] from the value of [key].
   dynamic subtract(String key, num value) {
     _variables[key] -= value;
-    return value - _variables[key];
+    return _variables[key] - value;
   }
 
+  /// Returns all the variables as a Map.
   Map<String, dynamic> getAll() {
     return _variables;
   }
 
+  /// Returns all the variables' keys as a List.
   List<String> keys() {
     return _variables.keys.toList();
   }
 
+  /// Returns all the variables' values as a List.
   List<dynamic> values() {
     return _variables.values.toList();
   }
 }
 
+/// Represents a guild (aka server) on Discord.
 class Guild {
   String id = '';
   String name = '';
   String? owner;
   String? description;
-  ChannelManager channels = ChannelManager([]);
-  MemberManager members = MemberManager([], '');
-  RoleManager roles = RoleManager([]);
+  late ChannelManager channels;
+  late MemberManager members;
+  late RoleManager roles;
+  final Sender _sender;
 
-  Guild(Map data) {
+  Guild(this._sender, Map data) {
     id = data["id"];
     name = data["name"];
     description = data["description"];
@@ -86,9 +106,9 @@ class Guild {
     if(data["channels"] != null && data["members"] != null && data["roles"] != null) {
       List<Channel> cc = [];
       for (var c in data["channels"]) {
-        cc.add(Channel(c));
+        cc.add(Channel(_sender, c));
       }
-      channels = ChannelManager(cc);
+      channels = ChannelManager(_sender, cc);
 
       List<Member> mm = [];
       for (var m in data["members"]) {
@@ -101,25 +121,27 @@ class Guild {
         rr.add(Role(r));
       }
       roles = RoleManager(rr);
+    } else {
+      channels = ChannelManager(_sender, []);
+      members = MemberManager([], id);
+      roles = RoleManager([]);
     }
   }
 }
 
 class GuildManager {
   final Collection cache = Collection();
+  final Sender _sender;
 
-  GuildManager(List<Guild> guilds) {
+  GuildManager(this._sender, List<Guild> guilds) {
     for (var guild in guilds) {
       cache.set(guild.id, guild);
     }
   }
 
   Future<Guild> fetch(String id) async {
-    var res = await http.get(Uri.parse("$apiURL/guilds/$id"));
-    if (res.statusCode != 200) {
-      throw Exception("Error ${res.statusCode} receiving the guild");
-    }
-    final guild = Guild(json.decode(res.body));
+    var res = await _sender.fetchGuild(id);
+    final guild = Guild(_sender, res);
     cache.set(guild.id, guild);
     return guild;
   }
@@ -128,28 +150,32 @@ class GuildManager {
 class Channel {
   String id = '';
   String name = '';
+  final Sender _sender;
 
-  Channel(Map data) {
+  Channel(this._sender, data) {
     id = data["id"];
     name = data["name"];
+  }
+
+  Future<MessageSent> send(Message message) async {
+    await _sender.send(message, id);
+    return MessageSent(message, id: id);
   }
 }
 
 class ChannelManager {
   final Collection cache = Collection();
+  final Sender _sender;
 
-  ChannelManager(List<Channel> channels) {
+  ChannelManager(this._sender, List<Channel> channels) {
     for (var channel in channels) {
       cache.set(channel.id, channel);
     }
   }
 
   Future<Channel> fetch(String id) async {
-    var res = await http.get(Uri.parse("$apiURL/channels/$id"));
-    if (res.statusCode != 200) {
-      throw Exception("Error ${res.statusCode} receiving the channel");
-    }
-    dynamic channel = Channel(json.decode(res.body));
+    var res = await _sender.fetchChannel(id);
+    dynamic channel = Channel(_sender, res);
     cache.set(channel.id, channel);
     return channel;
   }
@@ -157,12 +183,10 @@ class ChannelManager {
 
 class Member {
   String id = '';
-  String name = '';
   User user = User({});
 
   Member(Map data) {
     id = data["user"]["id"];
-    name = data["user"]["username"];
     user = User(data["user"]);
   }
 }
@@ -253,4 +277,23 @@ class UserManager {
 }
 
 typedef Embed = Map<String, String>;
-typedef Message = Map<String, String>;
+
+/// Represents a message on Discord.
+class Message {
+  String? content;
+  Message({ this.content });
+
+  exportable() {
+    return {
+      "content": content,
+    };
+  }
+}
+
+/// Represents a sent message on Discord.
+class MessageSent extends Message {
+  String id = '';
+  MessageSent(Message msg, { required this.id }) {
+    content = msg.content;
+  }
+}

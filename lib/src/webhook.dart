@@ -1,7 +1,6 @@
 import "dart:convert";
 
 import "package:http/http.dart";
-import "error_handler.dart";
 import 'requests.dart';
 import "types.dart";
 import "util.dart";
@@ -25,7 +24,6 @@ class WebhookClient {
     Map<String, String> body = {"content": content};
     Response res = await sendWH(body, token, id);
 
-    handleCode(res);
     return json.decode(res.body);
   }
 
@@ -35,7 +33,6 @@ class WebhookClient {
 
     Response res = await sendWH(body, token, id);
 
-    handleCode(res);
     return json.decode(res.body);
   }
 
@@ -43,7 +40,6 @@ class WebhookClient {
     Map<String, String> body = {"content": content};
     Response res = await editWH(body, token, this.id, id);
 
-    handleCode(res);
     return json.decode(res.body);
   }
 
@@ -51,20 +47,17 @@ class WebhookClient {
     Map body = {"content": content, "embeds": embeds};
     Response res = await editWH(body, token, this.id, id);
 
-    handleCode(res);
     return json.decode(res.body);
   }
 
   Future<Map<String, dynamic>> get(String id) async {
     Response res = await getWH(token, this.id, id);
-    handleCode(res);
 
     return json.decode(res.body);
   }
 
   Future<Map<String, dynamic>> delete(String id) async {
     Response res = await deleteWH(token, this.id, id);
-    handleCode(res);
 
     return json.decode(res.body);
   }
