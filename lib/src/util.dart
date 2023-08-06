@@ -1,4 +1,4 @@
-import 'types.dart';
+import 'classes/message/embed.dart';
 
 class Utils {
   static Map<String, String> parseWebhookURL(String url) {

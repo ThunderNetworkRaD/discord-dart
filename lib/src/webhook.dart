@@ -1,8 +1,8 @@
 import "dart:convert";
 
 import "package:http/http.dart";
+import "classes/message/embed.dart";
 import 'requests.dart';
-import "types.dart";
 import "util.dart";
 
 class WebhookClient {

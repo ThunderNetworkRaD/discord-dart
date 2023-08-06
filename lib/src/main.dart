@@ -3,7 +3,8 @@ import "dart:io";
 import "dart:convert";
 import "package:events_emitter/events_emitter.dart";
 
-import "types.dart";
+import "classes/guild/guild.dart";
+import "classes/guild/guild_manager.dart";
 import "requests.dart";
 
 final version = "10";
@@ -120,7 +121,16 @@ class Client extends EventEmitter {
           sessionID = event["d"]["session_id"];
           break;
         case "GUILD_CREATE":
-          guilds.cache.set(event["d"]["id"], Guild(sender, event["d"]));
+          if (guilds.cache.has(event["d"]["id"])) {
+            Guild oldGuild = guilds.cache.get(event["d"]["id"]);
+            if (oldGuild.appIsOwner != null) {
+              event['d']["owner"] = oldGuild.appIsOwner;
+            }
+            if (oldGuild.permissions != null) {
+              event['d']["permissions"] = oldGuild.permissions;
+            }
+          }
+          guilds.cache.set(event['d']["id"], Guild(sender, event['d']));
           if (n > 1) {
             n--;
           } else {

@@ -1,5 +1,5 @@
+import 'classes/message/message.dart';
 import 'main.dart';
-import 'types.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -72,6 +72,15 @@ class Sender {
     dynamic res = await http.get(Uri.parse("$apiURL/channels/$id"), headers: headers);
     if (res.statusCode != 200) {
       throw Exception("Error ${res.statusCode} receiving the channel");
+    }
+    res = json.decode(res.body);
+    return res;
+  }
+
+  Future fetchMember(String gid, String id) async {
+    dynamic res = await http.get(Uri.parse("$apiURL/guilds/$gid/members/$id"), headers: headers);
+    if (res.statusCode != 200) {
+      throw Exception("Error ${res.statusCode} receiving the member");
     }
     res = json.decode(res.body);
     return res;

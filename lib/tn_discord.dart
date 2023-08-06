@@ -2,4 +2,4 @@ library;
 
 export "src/webhook.dart";
 export "src/main.dart";
-export "src/types.dart";
+export "src/classes/gateway_intents_bits.dart";
