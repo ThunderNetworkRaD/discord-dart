@@ -133,8 +133,11 @@ class Client extends EventEmitter {
           guilds.cache.set(event['d']["id"], Guild(sender, event['d']));
           if (n > 1) {
             n--;
-          } else {
+          } else if (n == 1) {
+            n--;
             emit("READY");
+          } else {
+            emit("GUILD_CREATE");
           }
           break;
       }

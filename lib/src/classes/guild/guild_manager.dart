@@ -15,7 +15,13 @@ class GuildManager {
   Future<Guild> fetch(String id) async {
     var res = await _sender.fetchGuild(id);
     final guild = Guild(_sender, res);
-    final oldGuild = cache.get(guild.id);
+    Guild oldGuild = cache.get(guild.id);
+    oldGuild.members?.cache.values().forEach((member) {
+      guild.members?.cache.set(member.id, member);
+    });
+    oldGuild.channels?.cache.values().forEach((channel) {
+      guild.channels?.cache.set(channel.id, channel);
+    });
     guild.joinedAt = oldGuild.joinedAt;
     guild.large = oldGuild.large;
     guild.unavailable = oldGuild.unavailable;

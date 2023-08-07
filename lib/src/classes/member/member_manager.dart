@@ -13,9 +13,17 @@ class MemberManager {
     }
   }
 
-  Future<Member> fetch(String id) async {
-    var res = await _sender.fetchMember(this.id, id);
-    cache.set(id, Member(res));
-    return Member(res);
+  Future<Member> fetch(String id, {bool forceFetch = false}) async {
+    if (!forceFetch) {
+      if (cache.has(id)) {
+        return cache.get(id);
+      } else {
+        return await fetch(id, forceFetch: true);
+      }
+    } else {
+      var res = await _sender.fetchMember(this.id, id);
+      cache.set(id, Member(res));
+      return Member(res);
+    }
   }
 }
