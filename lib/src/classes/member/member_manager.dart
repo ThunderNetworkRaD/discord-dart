@@ -4,10 +4,10 @@ import "../../requests.dart";
 
 class MemberManager {
   final Collection cache = Collection();
-  String id;
+  String guildId;
   final Sender _sender;
 
-  MemberManager(this._sender, List<Member> members, this.id) {
+  MemberManager(this._sender, List<Member> members, this.guildId) {
     for (var member in members) {
       cache.set(member.id, member);
     }
@@ -21,7 +21,7 @@ class MemberManager {
         return await fetch(id, forceFetch: true);
       }
     } else {
-      var res = await _sender.fetchMember(this.id, id);
+      var res = await _sender.fetchMember(guildId, id);
       cache.set(id, Member(res));
       return Member(res);
     }

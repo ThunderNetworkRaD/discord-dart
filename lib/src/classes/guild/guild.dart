@@ -3,6 +3,7 @@ import '../images/guild_icon.dart';
 import '../../requests.dart';
 import '../channel/channel.dart';
 import '../channel/channel_manager.dart';
+import '../images/guild_splash.dart';
 import '../member/member.dart';
 import '../member/member_manager.dart';
 import '../role/role.dart';
@@ -27,7 +28,8 @@ class Guild {
   late String name;                   //       x      |   x   |      x
   late GuildIcon? icon;              //       x      |   x   |      x
   late String? iconHash;               //       x      |   x   |
-  String? splash;                 //       x      |   x   |
+  String? splashHash;                 //       x      |   x   |
+  GuildSplash? splash;
   String? discoverySplash;        //       x      |   x   |
   bool? appIsOwner;               //              |       |      x
   Future<Member>? owner;          //              |       |
@@ -93,9 +95,16 @@ class Guild {
 
     unavailable = false;
     name = data["name"];
-    icon = GuildIcon(data["icon"], id);
+    if (data["icon"] != null) {
+      icon = GuildIcon(data["icon"], id);
+    } else {
+      icon = null;
+    }
     iconHash = data["icon_hash"];
-    splash = data["splash"];
+    splashHash = data["splash"];
+    if (splashHash != null) {
+      splash = GuildSplash(splashHash.toString(), id);
+    }
     if (data["discovery_splash"] != null) {
       discoverySplash = data["discovery_splash"];
     } else {
@@ -103,7 +112,11 @@ class Guild {
     }
     appIsOwner = data["owner"];
     ownerId = data["owner_id"];
-    owner = members?.fetch(ownerId.toString());
+    if (ownerId != null) {
+      owner = members?.fetch(ownerId.toString());
+    } else {
+      owner = null;
+    }
     permissions = data["permissions"];
     afkChannelId = data["afk_channel_id"];
     afkTimeout = data["afk_timeout"];
