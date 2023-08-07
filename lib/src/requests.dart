@@ -86,3 +86,17 @@ class Sender {
     return res;
   }
 }
+
+Future interactionReply(String id, String token, Map<String, dynamic> content) async {
+  var bd = {
+    "type": 4,
+    "data": content
+  };
+
+  dynamic res = await http.post(Uri.parse("$apiURL/interactions/$id/$token/callback"), body: json.encode(bd), headers: { "Content-Type": "application/json" });
+  if (res.statusCode != 204) {
+    throw Exception("Error ${res.statusCode} replying to the interaction");
+  }
+  res = json.decode(res.body);
+  return res;
+}

@@ -5,6 +5,7 @@ import "package:events_emitter/events_emitter.dart";
 
 import "classes/guild/guild.dart";
 import "classes/guild/guild_manager.dart";
+import "classes/interaction.dart";
 import "requests.dart";
 
 final version = "10";
@@ -139,6 +140,9 @@ class Client extends EventEmitter {
           } else {
             emit("GUILD_CREATE");
           }
+          break;
+        case "INTERACTION_CREATE":
+          emit("INTERACTION_CREATE", Interaction(event["d"]));
           break;
       }
     }, onDone: () {

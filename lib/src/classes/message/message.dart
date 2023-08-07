@@ -4,7 +4,7 @@ class Message {
   Message({ this.content });
 
   /// Returns an object rapresentation of the message
-  exportable() {
+  Map<String, dynamic> exportable() {
     return {
       "content": content,
     };
