@@ -1,3 +1,5 @@
+import '../images/guild_icon.dart';
+
 import '../../requests.dart';
 import '../channel/channel.dart';
 import '../channel/channel_manager.dart';
@@ -15,11 +17,16 @@ class Guild {
   RoleManager? roles;
 
   // Param                           guild create | fetch | fetch-servers
-  late String id;                 //       x      |   x   |      x
-  late bool unavailable;          //       x      |   x   |
-  String? name;                   //       x      |   x   |      x
-  String? icon;                   //       x      |   x   |      x
-  String? iconHash;               //       x      |   x   |
+  /// The guild's id <br>
+  /// ✅ GuildCreate, GuildUpdate, GuildDelete, FetchOneGuild, FetchAllGuild
+  late String id;
+  /// Whether the guild is available to access. If it is not available, it indicates a server outage
+  /// ✅ GuildCreate, GuildDelete
+  /// ❎ FetchOneGuild, FetchAllGuild, GuildUpdate
+  late bool unavailable;
+  late String name;                   //       x      |   x   |      x
+  late GuildIcon? icon;              //       x      |   x   |      x
+  late String? iconHash;               //       x      |   x   |
   String? splash;                 //       x      |   x   |
   String? discoverySplash;        //       x      |   x   |
   bool? appIsOwner;               //              |       |      x
@@ -60,92 +67,87 @@ class Guild {
 
   Guild(this._sender, Map data) {
     id = data["id"];
+    if(data["channels"] != null && data["members"] != null && data["roles"] != null) {
+      List<Channel> cc = [];
+      for (var c in data["channels"]) {
+        cc.add(Channel(_sender, c));
+      }
+      channels = ChannelManager(_sender, cc);
 
-    // Without discord outages
-    if (data["unavailable"] != null && !data["unavailable"]) {
-      if(data["channels"] != null && data["members"] != null && data["roles"] != null) {
-        List<Channel> cc = [];
-        for (var c in data["channels"]) {
-          cc.add(Channel(_sender, c));
-        }
-        channels = ChannelManager(_sender, cc);
+      List<Member> mm = [];
+      for (var m in data["members"]) {
+        mm.add(Member(m));
+      }
+      members = MemberManager(_sender, mm, id);
 
-        List<Member> mm = [];
-        for (var m in data["members"]) {
-          mm.add(Member(m));
-        }
-        members = MemberManager(_sender, mm, id);
+      List<Role> rr = [];
+      for (var r in data["roles"]) {
+        rr.add(Role(r));
+      }
+      roles = RoleManager(rr);
+    } else {
+      channels = ChannelManager(_sender, []);
+      members = MemberManager(_sender, [], id);
+      roles = RoleManager([]);
+    }
 
-        List<Role> rr = [];
-        for (var r in data["roles"]) {
-          rr.add(Role(r));
-        }
-        roles = RoleManager(rr);
-      } else {
-        channels = ChannelManager(_sender, []);
-        members = MemberManager(_sender, [], id);
-        roles = RoleManager([]);
-      }
+    unavailable = false;
+    name = data["name"];
+    icon = GuildIcon(data["icon"], id);
+    iconHash = data["icon_hash"];
+    splash = data["splash"];
+    if (data["discovery_splash"] != null) {
+      discoverySplash = data["discovery_splash"];
+    } else {
+      discoverySplash = null;
+    }
+    appIsOwner = data["owner"];
+    ownerId = data["owner_id"];
+    owner = members?.fetch(ownerId.toString());
+    permissions = data["permissions"];
+    afkChannelId = data["afk_channel_id"];
+    afkTimeout = data["afk_timeout"];
+    widgetEnabled = data["widget_enabled"];
+    widgetChannelId = data["widget_channel_id"];
+    verificationLevel = data["verification_level"];
+    defaultMessageNotifications = data["default_message_notifications"];
+    explicitContentFilter = data["explicit_content_filter"];
+    features = data["features"];
+    mfaLevel = data["mfa_level"];
+    applicationId = data["application_id"];
+    systemChannelId = data["system_channel_id"];
+    systemChannelFlags = data["system_channel_flags"];
+    rulesChannelId = data["rules_channel_id"];
+    maxPresences = data["max_presences"];
+    maxMembers = data["max_members"];
+    vanityUrlCode = data["vanity_url_code"];
+    description = data["description"];
+    banner = data["banner"];
+    premiumTier = data["premium_tier"];
+    premiumSubscriptionCount = data["premium_subscription_count"];
+    preferredLocale = data["preferred_locale"];
+    publicUpdatesChannelId = data["public_updates_channel_id"];
+    maxVideoChannelUsers = data["max_video_channel_users"];
+    maxStageVideoChannelUsers = data["max_stage_video_channel_users"];
+    premiumProgressBarEnabled = data["premium_progress_bar_enabled"];
+    safetyAlertsChannelId = data["safety_alerts_channel_id"];
 
-      unavailable = data["unavailable"] ?? false;
-      name = data["name"];
-      icon = data["icon"];
-      iconHash = data["icon_hash"];
-      splash = data["splash"];
-      if (data["discovery_splash"] != null) {
-        discoverySplash = data["discovery_splash"];
-      } else {
-        discoverySplash = null;
-      }
-      appIsOwner = data["owner"];
-      ownerId = data["owner_id"];
-      owner = members?.fetch(ownerId.toString());
-      permissions = data["permissions"];
-      afkChannelId = data["afk_channel_id"];
-      afkTimeout = data["afk_timeout"];
-      widgetEnabled = data["widget_enabled"];
-      widgetChannelId = data["widget_channel_id"];
-      verificationLevel = data["verification_level"];
-      defaultMessageNotifications = data["default_message_notifications"];
-      explicitContentFilter = data["explicit_content_filter"];
-      features = data["features"];
-      mfaLevel = data["mfa_level"];
-      applicationId = data["application_id"];
-      systemChannelId = data["system_channel_id"];
-      systemChannelFlags = data["system_channel_flags"];
-      rulesChannelId = data["rules_channel_id"];
-      maxPresences = data["max_presences"];
-      maxMembers = data["max_members"];
-      vanityUrlCode = data["vanity_url_code"];
-      description = data["description"];
-      banner = data["banner"];
-      premiumTier = data["premium_tier"];
-      premiumSubscriptionCount = data["premium_subscription_count"];
-      preferredLocale = data["preferred_locale"];
-      publicUpdatesChannelId = data["public_updates_channel_id"];
-      maxVideoChannelUsers = data["max_video_channel_users"];
-      maxStageVideoChannelUsers = data["max_stage_video_channel_users"];
-      premiumProgressBarEnabled = data["premium_progress_bar_enabled"];
-      safetyAlertsChannelId = data["safety_alerts_channel_id"];
+    if (data["approximate_member_count"] != null) {
+      approximateMemberCount = data["approximate_member_count"];
+    }
+    if (data["approximate_presence_count"] != null) {
+      approximatePresenceCount = data["approximate_presence_count"];
+    }
 
-      if (data["approximate_member_count"] != null) {
-        approximateMemberCount = data["approximate_member_count"];
-      }
-      if (data["approximate_presence_count"] != null) {
-        approximatePresenceCount = data["approximate_presence_count"];
-      }
-      // GuildCreate only
-      if (data["joined_at"] != null) {
-        joinedAt = data["joined_at"];
-      }
-      if (data["large"] != null) {
-        large = data["large"];
-      }
-      if (data["member_count"] != null) {
-        memberCount = data["member_count"];
-      }
-    } else if (data["unavailable"] != null) {
-      unavailable = data["unavailable"];
+    // GuildCreate only
+    if (data["joined_at"] != null) {
+      joinedAt = data["joined_at"];
+    }
+    if (data["large"] != null) {
+      large = data["large"];
+    }
+    if (data["member_count"] != null) {
+      memberCount = data["member_count"];
     }
   }
 }
