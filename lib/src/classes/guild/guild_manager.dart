@@ -13,7 +13,7 @@ class GuildManager {
   }
 
   Future<Guild> fetch(String id) async {
-    var res = await _sender.fetchGuild(id);
+    var res = await _sender.fetchGuild(id, withCounts: true);
     final guild = Guild(_sender, res);
     Guild oldGuild = cache.get(guild.id);
     oldGuild.members?.cache.values().forEach((member) {

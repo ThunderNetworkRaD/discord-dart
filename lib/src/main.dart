@@ -85,7 +85,7 @@ class Client extends EventEmitter {
     }
 
     Sender sender = Sender(token);
-    var i = await sender.getServers();
+    var i = await sender.fetchGuilds(withCounts: true);
 
     List<Guild> gg = [];
 

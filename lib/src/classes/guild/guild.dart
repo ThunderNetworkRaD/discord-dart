@@ -39,8 +39,21 @@ class Guild {
   String? systemChannelId;        //       x      |   x   |
   int? systemChannelFlags;        //       x      |   x   |
   String? rulesChannelId;         //       x      |   x   |
-  
-  String? description;
+  int? maxPresences;              //       x      |   x   |
+  int? maxMembers;                //       x      |   x   |
+  String? vanityUrlCode;          //       x      |   x   |
+  String? description;            //       x      |   x   |
+  String? banner;                 //       x      |   x   |
+  int? premiumTier;               //       x      |   x   |
+  int? premiumSubscriptionCount;  //       x      |   x   |
+  String? preferredLocale;        //       x      |   x   |
+  String? publicUpdatesChannelId; //       x      |   x   |
+  int? maxVideoChannelUsers;      //       x      |   x   |
+  int? maxStageVideoChannelUsers; //              |   x   |      x
+  int? approximateMemberCount;    //              |   x   |      x
+  int? approximatePresenceCount;  //              |   x   |      x
+  bool? premiumProgressBarEnabled;//       x      |   x   |
+  String? safetyAlertsChannelId;  //       x      |   x   |
   String? joinedAt;               //       x      |       |
   bool? large;                    //       x      |       |
   int? memberCount;               //       x      |       |
@@ -101,8 +114,26 @@ class Guild {
       systemChannelId = data["system_channel_id"];
       systemChannelFlags = data["system_channel_flags"];
       rulesChannelId = data["rules_channel_id"];
+      maxPresences = data["max_presences"];
+      maxMembers = data["max_members"];
+      vanityUrlCode = data["vanity_url_code"];
       description = data["description"];
+      banner = data["banner"];
+      premiumTier = data["premium_tier"];
+      premiumSubscriptionCount = data["premium_subscription_count"];
+      preferredLocale = data["preferred_locale"];
+      publicUpdatesChannelId = data["public_updates_channel_id"];
+      maxVideoChannelUsers = data["max_video_channel_users"];
+      maxStageVideoChannelUsers = data["max_stage_video_channel_users"];
+      premiumProgressBarEnabled = data["premium_progress_bar_enabled"];
+      safetyAlertsChannelId = data["safety_alerts_channel_id"];
 
+      if (data["approximate_member_count"] != null) {
+        approximateMemberCount = data["approximate_member_count"];
+      }
+      if (data["approximate_presence_count"] != null) {
+        approximatePresenceCount = data["approximate_presence_count"];
+      }
       // GuildCreate only
       if (data["joined_at"] != null) {
         joinedAt = data["joined_at"];

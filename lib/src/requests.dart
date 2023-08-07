@@ -45,8 +45,8 @@ class Sender {
     };
   }
 
-  Future getServers() async {
-    final url = Uri.parse("$apiURL/users/@me/guilds");
+  Future fetchGuilds({ bool withCounts = false }) async {
+    final url = Uri.parse("$apiURL/users/@me/guilds?with_counts=$withCounts");
     dynamic res = await http.get(url, headers: headers);
     res = json.decode(res.body);
     return res;
@@ -59,8 +59,8 @@ class Sender {
     return res;
   }
 
-  Future fetchGuild(String id) async {
-    dynamic res = await http.get(Uri.parse("$apiURL/guilds/$id"), headers: headers);
+  Future fetchGuild(String id, { bool withCounts = false }) async {
+    dynamic res = await http.get(Uri.parse("$apiURL/guilds/$id?with_counts=$withCounts"), headers: headers);
     if (res.statusCode != 200) {
       throw Exception("Error ${res.statusCode} receiving the guild");
     }
