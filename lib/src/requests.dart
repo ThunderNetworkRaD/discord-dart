@@ -37,6 +37,7 @@ Future<String> requestWebSocketURL() async {
 class Sender {
   final String? _token;
   Map<String, String> headers = {};
+  dynamic channels;
 
   Sender(this._token) {
     headers = {
@@ -95,8 +96,7 @@ Future interactionReply(String id, String token, Map<String, dynamic> content) a
 
   dynamic res = await http.post(Uri.parse("$apiURL/interactions/$id/$token/callback"), body: json.encode(bd), headers: { "Content-Type": "application/json" });
   if (res.statusCode != 204) {
-    throw Exception("Error ${res.statusCode} replying to the interaction");
+    throw Exception("Error ${res.statusCode} replying to the interaction\nBody: ${json.encode(res.body)}");
   }
-  res = json.decode(res.body);
   return res;
 }

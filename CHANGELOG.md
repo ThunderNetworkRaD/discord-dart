@@ -1,3 +1,14 @@
+# 1.2.0
+- Add `client`
+- Add Event Emitter/Listener (`client.on`)
+- Add GatewayIntentsBits class
+- Add Event Class
+- Add Event `Ready`
+- Add Event `GuildCreate`
+- Add Event `GuildDelete`
+- Add Event `InteractionCreate`
+- Add many classes
+
 # 1.1.1
 - Fix readme
 

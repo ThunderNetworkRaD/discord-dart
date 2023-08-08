@@ -1,11 +1,17 @@
 import "dart:async";
-import "dart:io";
+import 'dart:io' if (dart.library.html) 'dart:html';
 import "dart:convert";
 import "package:events_emitter/events_emitter.dart";
+import "package:tn_discord/src/classes/channel/channel_manager.dart";
 
 import "classes/guild/guild.dart";
 import "classes/guild/guild_manager.dart";
 import "classes/interaction.dart";
+import "classes/message/embed.dart";
+import "classes/message/message.dart";
+import "classes/guild/unavailable_guild.dart";
+import "classes/message/message_sent.dart";
+import "classes/user/user.dart";
 import "requests.dart";
 
 final version = "10";
@@ -33,6 +39,9 @@ class Client extends EventEmitter {
   String resumeGatewayURL = "";
   String sessionID = "";
   late GuildManager guilds;
+  late ChannelManager channels;
+  bool ready = false;
+  late User user;
 
   /// Create a new Client.
   /// [intents] Intents to enable for this connection, it's a multiple of two.
@@ -94,6 +103,9 @@ class Client extends EventEmitter {
       gg.add(Guild(sender, g));
     }
 
+    channels = ChannelManager(sender, [], main: true);
+
+    sender.channels = channels;
     guilds = GuildManager(sender, gg);
 
     int n = i.length;
@@ -120,6 +132,8 @@ class Client extends EventEmitter {
         case "READY":
           resumeGatewayURL = event["d"]["resume_gateway_url"];
           sessionID = event["d"]["session_id"];
+          user = User(event["d"]["user"]);
+          ready = true;
           break;
         case "GUILD_CREATE":
           if (guilds.cache.has(event["d"]["id"])) {
@@ -141,8 +155,61 @@ class Client extends EventEmitter {
             emit("GUILD_CREATE");
           }
           break;
+        case "GUILD_DELETE":
+          dynamic guild;
+          if (guilds.cache.has(event["d"]["id"])) {
+            guild = guilds.cache.get(event["d"]["id"]);
+            guilds.cache.set(event["d"]["id"], UnavailableGuild(event["d"]["id"], notUpdatedGuild: guild));
+          } else {
+            guild = event["d"];
+          }
+          emit("GUILD_DELETE", guild);
+          break;
         case "INTERACTION_CREATE":
+          if (!ready) return;
           emit("INTERACTION_CREATE", Interaction(event["d"]));
+          break;
+        case "MESSAGE_CREATE":
+          if (!ready) return;
+          var content = event["d"]["content"];
+          var embeds = event["d"]["embeds"];
+          List<Embed> e = [];
+          for (var embed in embeds) {
+            var title = embed["title"];
+            var description = embed["description"];
+            var url = embed["url"];
+            var timestamp = embed["timestamp"];
+            var color = embed["color"];
+            var footer = embed["footer"];
+            var image = embed["image"];
+            var thumbnail = embed["thumbnail"];
+            var author = embed["author"];
+            var fields = embed["fields"];
+            e.add(Embed(
+              author: author,
+              fields: fields,
+              footer: footer,
+              image: image,
+              thumbnail: thumbnail,
+              title: title,
+              description: description,
+              url: url,
+              timestamp: timestamp,
+              color: color
+            ));
+          }
+          emit(
+            "MESSAGE_CREATE",
+            MessageSent(
+              Message(
+                content: content,
+                embeds: e
+              ),
+              event["d"]["author"]["id"],
+              event["d"]["channel_id"],
+              event["d"]["id"]
+            )
+          );
           break;
       }
     }, onDone: () {

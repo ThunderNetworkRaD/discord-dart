@@ -9,7 +9,6 @@ class Interaction {
   Interaction(dynamic data) {
     token = data["token"];
     id = data["id"];
-    print(data);
   }
 
   reply(Message message) {

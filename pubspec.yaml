@@ -1,8 +1,7 @@
 name: tn_discord
 description: A powerful Dart library for interacting with the Discord API.
-version: 1.1.1
-repository: https://github.com/ThunderNetworkRaD/discord.dart
-
+version: 1.2.0
+repository: https://github.com/ThunderNetworkRaD/discord-dart
 
 environment:
   sdk: ^3.0.6

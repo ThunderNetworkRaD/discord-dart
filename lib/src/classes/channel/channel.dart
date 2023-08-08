@@ -13,7 +13,7 @@ class Channel {
   }
 
   Future<MessageSent> send(Message message) async {
-    await _sender.send(message, id);
-    return MessageSent(message, id: id);
+    var res = await _sender.send(message, id);
+    return MessageSent(message, res["author"]["id"], id, res["id"]);
   }
 }
