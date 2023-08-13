@@ -1,7 +1,8 @@
 # 1.3.0
 - Renamed `calculateIntents` to `intentsCalculator`
-- Add Docs in Guild Class
+- Add set slashcommands
 - Add GuildDiscoverySplash
+- Adding Docs in Guild Class
 - Fix `guild_icon`
 - Fix `guild_splash`
 - Removed `base_image`

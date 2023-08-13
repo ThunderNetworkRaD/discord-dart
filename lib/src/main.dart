@@ -42,6 +42,7 @@ class Client extends EventEmitter {
   late ChannelManager channels;
   bool ready = false;
   late User user;
+  var commands = {};
 
   /// Create a new Client.
   /// [intents] Intents to enable for this connection, it's a multiple of two.
@@ -94,23 +95,10 @@ class Client extends EventEmitter {
       });
     }
 
-    Sender sender = Sender(token);
-    var i = await sender.fetchGuilds(withCounts: true);
+    late Sender sender;
+    late int n;
 
-    List<Guild> gg = [];
-
-    for (dynamic g in i) {
-      gg.add(Guild(sender, g));
-    }
-
-    channels = ChannelManager(sender, [], main: true);
-
-    sender.channels = channels;
-    guilds = GuildManager(sender, gg);
-
-    int n = i.length;
-
-    ws.listen((event) {
+    ws.listen((event) async {
       event = json.decode(event);
 
       switch (event["op"]) {
@@ -130,6 +118,24 @@ class Client extends EventEmitter {
 
       switch (eventName) {
         case "READY":
+          sender = Sender(token, event["d"]["user"]["id"]);
+          var i = await sender.fetchGuilds(withCounts: true);
+
+          List<Guild> gg = [];
+
+          for (dynamic g in i) {
+            gg.add(Guild(sender, g));
+          }
+
+          channels = ChannelManager(sender, [], main: true);
+
+          sender.channels = channels;
+          guilds = GuildManager(sender, gg);
+
+          n = i.length;
+
+          commands["set"] = sender.setCommands;
+
           resumeGatewayURL = event["d"]["resume_gateway_url"];
           sessionID = event["d"]["session_id"];
           user = User(event["d"]["user"]);

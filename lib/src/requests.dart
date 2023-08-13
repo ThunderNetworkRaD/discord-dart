@@ -36,10 +36,11 @@ Future<String> requestWebSocketURL() async {
 
 class Sender {
   final String? _token;
+  final String id;
   Map<String, String> headers = {};
   dynamic channels;
 
-  Sender(this._token) {
+  Sender(this._token, this.id) {
     headers = {
       "Content-Type": "application/json",
       "Authorization": "Bot $_token",
@@ -81,6 +82,15 @@ class Sender {
   Future fetchMember(String gid, String id) async {
     dynamic res = await http.get(Uri.parse("$apiURL/guilds/$gid/members/$id"), headers: headers);
     if (res.statusCode != 200) {
+      throw Exception("Error ${res.statusCode} receiving the member");
+    }
+    res = json.decode(res.body);
+    return res;
+  }
+
+  Future setCommands(List commands) async {
+    dynamic res = await http.put(Uri.parse("$apiURL/applications/$id/commands"), headers: headers, body: json.encode(commands));
+    if (res.statusCode != 200 || res.statusCode != 201) {
       throw Exception("Error ${res.statusCode} receiving the member");
     }
     res = json.decode(res.body);
