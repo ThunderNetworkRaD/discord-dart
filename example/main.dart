@@ -10,7 +10,7 @@ main() async {
     ])
   );
 
-  client.login("ODkwMjg2NzMzMTE0MDkzNTg4.GQqDv6.QWoa1Sd8S0wz4QjeKNfr6prnQgkMyk8mXv-z1g");
+  client.login("ODkwMz1g");
 
   client.on("READY", (data) async {
     // Let we get a guild name
