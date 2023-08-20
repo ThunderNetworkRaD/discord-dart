@@ -38,11 +38,12 @@ Future<String> requestWebSocketURL() async {
 
 class Sender {
   final String? _token;
+  final String id;
   Map<String, String> headers = {};
   dynamic channels;
   String? id;
 
-  Sender(this._token) {
+  Sender(this._token, this.id) {
     headers = {
       "Content-Type": "application/json",
       "Authorization": "Bot $_token",

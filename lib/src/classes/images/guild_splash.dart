@@ -1,11 +1,8 @@
-import 'base_image.dart';
-
-class GuildSplash extends BaseImage {
+class GuildSplash  {
   late String id;
+  late String hash;
 
-  GuildSplash(String hash, this.id) : super(hash) {
-    this.hash = hash;
-  }
+  GuildSplash(this.hash, this.id);
 
   String url({String? extension = "jpeg"}) {
     return "https://cdn.discordapp.com/splashes/$id/$hash.$extension";

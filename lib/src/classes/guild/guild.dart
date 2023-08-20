@@ -1,3 +1,4 @@
+import '../images/guild_discovery_splash.dart';
 import '../images/guild_icon.dart';
 
 import '../../requests.dart';
@@ -17,23 +18,28 @@ class Guild {
   MemberManager? members;
   RoleManager? roles;
 
-  // Param                           guild create | fetch | fetch-servers
-  /// The guild's id <br>
-  /// ✅ GuildCreate, GuildUpdate, GuildDelete, FetchOneGuild, FetchAllGuild
+  /// The guild's id
   late String id;
   /// Whether the guild is available to access. If it is not available, it indicates a server outage
-  /// ✅ GuildCreate, GuildDelete
-  /// ❎ FetchOneGuild, FetchAllGuild, GuildUpdate
-  late bool unavailable;
-  late String name;                   //       x      |   x   |      x
-  late GuildIcon? icon;              //       x      |   x   |      x
-  late String? iconHash;               //       x      |   x   |
-  String? splashHash;                 //       x      |   x   |
-  GuildSplash? splash;
-  String? discoverySplash;        //       x      |   x   |
-  bool? appIsOwner;               //              |       |      x
-  Future<Member>? owner;          //              |       |
-  String? ownerId;                //       x      |   x   |
+  bool unavailable = false;
+  /// The name of this guild
+  late String name;
+  /// The icon hash of this guild
+  late String? iconHash;
+  /// The icon of this guild
+  late GuildIcon? icon;
+  /// The hash of the guild invite splash image
+  late String? splashHash;
+  /// The guild invite splash image of this guild
+  late GuildSplash? splash;
+  /// The hash of the guild discovery splash image
+  late String? discoverySplashHash;
+  /// The guild discovery splash image of this guild
+  late GuildDiscoverySplash? discoverySplash;
+  /// The owner of this guild
+  late Future<Member>? owner;
+  /// The owner id of this guild
+  String? ownerId;
   String? permissions;            //              |       |      x
   String? afkChannelId;           //       x      |   x   |
   int? afkTimeout;                //       x      |   x   |
@@ -66,6 +72,7 @@ class Guild {
   String? joinedAt;               //       x      |       |
   bool? large;                    //       x      |       |
   int? memberCount;               //       x      |       |
+  // Param                           guild create | fetch | fetch-servers
 
   Guild(this._sender, Map data) {
     id = data["id"];
@@ -93,27 +100,32 @@ class Guild {
       roles = RoleManager([]);
     }
 
-    unavailable = false;
     name = data["name"];
-    if (data["icon"] != null) {
-      icon = GuildIcon(data["icon"], id);
+
+    iconHash = data["icon_hash"];
+    if (iconHash != null) {
+      icon = GuildIcon(iconHash!, id);
     } else {
       icon = null;
     }
-    iconHash = data["icon_hash"];
+
     splashHash = data["splash"];
     if (splashHash != null) {
-      splash = GuildSplash(splashHash.toString(), id);
+      splash = GuildSplash(splashHash!, id);
+    } else {
+      splash = null;
     }
-    if (data["discovery_splash"] != null) {
-      discoverySplash = data["discovery_splash"];
+
+    discoverySplashHash = data["discovery_splash"];
+    if (discoverySplashHash != null) {
+      discoverySplash = GuildDiscoverySplash(discoverySplashHash!, id);
     } else {
       discoverySplash = null;
     }
-    appIsOwner = data["owner"];
+
     ownerId = data["owner_id"];
     if (ownerId != null) {
-      owner = members?.fetch(ownerId.toString());
+      owner = members!.fetch(ownerId.toString());
     } else {
       owner = null;
     }

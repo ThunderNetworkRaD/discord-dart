@@ -1,11 +1,8 @@
-import 'base_image.dart';
-
-class GuildIcon extends BaseImage {
+class GuildIcon {
   late String id;
+  late String hash;
 
-  GuildIcon(String hash, this.id) : super(hash) {
-    this.hash = hash;
-  }
+  GuildIcon(this.hash, this.id);
 
   String url({String? extension = "jpeg"}) {
     return "https://cdn.discordapp.com/icons/$id/$hash.$extension";

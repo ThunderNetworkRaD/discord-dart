@@ -1,3 +1,13 @@
+# 1.3.0
+- Renamed `calculateIntents` to `intentsCalculator`
+- Add set slashcommands
+- Add GuildDiscoverySplash
+- Adding Docs in Guild Class
+- Fix `guild_icon`
+- Fix `guild_splash`
+- Removed `base_image`
+- Removed `notUpdatedGuild` from UnavailableGuild
+
 # 1.2.0
 - Add `client`
 - Add Event Emitter/Listener (`client.on`)

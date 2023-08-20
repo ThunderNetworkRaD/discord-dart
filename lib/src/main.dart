@@ -21,7 +21,7 @@ final apiURL = "https://discord.com/api/v$version";
 /// This function calculate the intent number required from the gateway.
 /// [intents] is a list of multiples of two. You can use GatewayIntentBits class.
 /// Return a number.
-int calculateIntents(List<int> intents) {
+int intentsCalculator(List<int> intents) {
   int intentsNumber = 0;
 
   for (var element in intents) {
@@ -44,6 +44,7 @@ class Client extends EventEmitter {
   bool ready = false;
   late User user;
   late CommandManager commands;
+
 
   /// Create a new Client.
   /// [intents] Intents to enable for this connection, it's a multiple of two.
@@ -96,23 +97,10 @@ class Client extends EventEmitter {
       });
     }
 
-    Sender sender = Sender(token);
-    var i = await sender.fetchGuilds(withCounts: true);
+    late Sender sender;
+    late int n;
 
-    List<Guild> gg = [];
-
-    for (dynamic g in i) {
-      gg.add(Guild(sender, g));
-    }
-
-    channels = ChannelManager(sender, [], main: true);
-
-    sender.channels = channels;
-    guilds = GuildManager(sender, gg);
-
-    int n = i.length;
-
-    ws.listen((event) {
+    ws.listen((event) async {
       event = json.decode(event);
 
       switch (event["op"]) {
@@ -132,6 +120,24 @@ class Client extends EventEmitter {
 
       switch (eventName) {
         case "READY":
+          sender = Sender(token, event["d"]["user"]["id"]);
+          var i = await sender.fetchGuilds(withCounts: true);
+
+          List<Guild> gg = [];
+
+          for (dynamic g in i) {
+            gg.add(Guild(sender, g));
+          }
+
+          channels = ChannelManager(sender, [], main: true);
+
+          sender.channels = channels;
+          guilds = GuildManager(sender, gg);
+
+          n = i.length;
+
+          commands["set"] = sender.setCommands;
+
           resumeGatewayURL = event["d"]["resume_gateway_url"];
           sessionID = event["d"]["session_id"];
           user = User(event["d"]["user"]);
@@ -142,9 +148,6 @@ class Client extends EventEmitter {
         case "GUILD_CREATE":
           if (guilds.cache.has(event["d"]["id"])) {
             Guild oldGuild = guilds.cache.get(event["d"]["id"]);
-            if (oldGuild.appIsOwner != null) {
-              event['d']["owner"] = oldGuild.appIsOwner;
-            }
             if (oldGuild.permissions != null) {
               event['d']["permissions"] = oldGuild.permissions;
             }
@@ -160,13 +163,11 @@ class Client extends EventEmitter {
           }
           break;
         case "GUILD_DELETE":
-          dynamic guild;
           if (guilds.cache.has(event["d"]["id"])) {
-            guild = guilds.cache.get(event["d"]["id"]);
-            guilds.cache.set(event["d"]["id"], UnavailableGuild(event["d"]["id"], notUpdatedGuild: guild));
-          } else {
-            guild = event["d"];
+            guilds.cache.delete(event["d"]["id"]);
+            guilds.cache.set(event["d"]["id"], UnavailableGuild(event["d"]["id"],));
           }
+          var guild = event["d"];
           emit("GUILD_DELETE", guild);
           break;
         case "INTERACTION_CREATE":
