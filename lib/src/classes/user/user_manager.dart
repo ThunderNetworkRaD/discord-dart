@@ -4,7 +4,6 @@ import "package:http/http.dart" as http;
 
 import '../../../tn_discord.dart';
 import '../../collection.dart';
-import './user.dart';
 
 class UserManager {
   final Collection cache = Collection();

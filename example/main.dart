@@ -1,6 +1,3 @@
-import 'package:tn_discord/src/classes/events.dart';
-import 'package:tn_discord/src/classes/message/message.dart';
-import 'package:tn_discord/src/classes/message/message_sent.dart';
 import 'package:tn_discord/tn_discord.dart';
 
 main() async {
@@ -13,12 +10,13 @@ main() async {
     ])
   );
 
-  client.login("Your Bot Token");
+  client.login("ODkwMjg2NzMzMTE0MDkzNTg4.GQqDv6.QWoa1Sd8S0wz4QjeKNfr6prnQgkMyk8mXv-z1g");
 
   client.on("READY", (data) async {
     // Let we get a guild name
-    var a = await client.guilds.fetch("a guild id");
+    var a = await client.guilds.fetch("913388008307302410");
     print(a.name);
+    client.commands.create(Command(name: "test", description: "test1"));
   });
 
   client.on(Events.MessageCreate, (MessageSent message) async {
