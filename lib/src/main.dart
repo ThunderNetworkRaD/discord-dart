@@ -3,6 +3,7 @@ import 'dart:io' if (dart.library.html) 'dart:html';
 import "dart:convert";
 import "package:events_emitter/events_emitter.dart";
 import "package:tn_discord/src/classes/channel/channel_manager.dart";
+import "package:tn_discord/src/classes/commands/command_manager.dart";
 
 import "classes/guild/guild.dart";
 import "classes/guild/guild_manager.dart";
@@ -42,7 +43,8 @@ class Client extends EventEmitter {
   late ChannelManager channels;
   bool ready = false;
   late User user;
-  var commands = {};
+  late CommandManager commands;
+
 
   /// Create a new Client.
   /// [intents] Intents to enable for this connection, it's a multiple of two.
@@ -139,7 +141,9 @@ class Client extends EventEmitter {
           resumeGatewayURL = event["d"]["resume_gateway_url"];
           sessionID = event["d"]["session_id"];
           user = User(event["d"]["user"]);
+          sender.setID(user.id);
           ready = true;
+          commands = CommandManager(sender);
           break;
         case "GUILD_CREATE":
           if (guilds.cache.has(event["d"]["id"])) {

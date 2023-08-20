@@ -1,3 +1,5 @@
+import 'classes/commands/command.dart';
+
 import 'classes/message/message.dart';
 import 'main.dart';
 import 'package:http/http.dart' as http;
@@ -39,12 +41,17 @@ class Sender {
   final String id;
   Map<String, String> headers = {};
   dynamic channels;
+  String? id;
 
   Sender(this._token, this.id) {
     headers = {
       "Content-Type": "application/json",
       "Authorization": "Bot $_token",
     };
+  }
+
+  setID(String id) {
+    this.id = id;
   }
 
   Future fetchGuilds({ bool withCounts = false }) async {
@@ -54,7 +61,7 @@ class Sender {
     return res;
   }
 
-  Future send(Message msg, String cid) async {
+  Future sendMessage(Message msg, String cid) async {
     final url = Uri.parse("$apiURL/channels/$cid/messages");
     dynamic res = await http.post(url, headers: headers, body: json.encode(msg.exportable()));
     res = json.decode(res.body);
@@ -88,10 +95,19 @@ class Sender {
     return res;
   }
 
-  Future setCommands(List commands) async {
-    dynamic res = await http.put(Uri.parse("$apiURL/applications/$id/commands"), headers: headers, body: json.encode(commands));
-    if (res.statusCode != 200 || res.statusCode != 201) {
-      throw Exception("Error ${res.statusCode} receiving the member");
+  Future createGlobalCommands(Command body) async {
+    dynamic res = await http.post(Uri.parse("$apiURL/applications/$id/commands"), headers: headers, body: json.encode(body.exportable()));
+    if (res.statusCode != 201 && res.statusCode != 200) {
+      throw Exception("Error ${res.statusCode} setting the global command\nBody: ${json.decode(res.body)}");
+    }
+    res = json.decode(res.body);
+    return res;
+  }
+
+  Future createGuildCommands(String id, Command body) async {
+    dynamic res = await http.post(Uri.parse("$apiURL/applications/${this.id}/guilds/$id/commands"), headers: headers, body: json.encode(body.exportable()));
+    if (res.statusCode != 201 && res.statusCode != 200) {
+      throw Exception("Error ${res.statusCode} setting the guild command\nBody: ${json.decode(res.body)}");
     }
     res = json.decode(res.body);
     return res;
